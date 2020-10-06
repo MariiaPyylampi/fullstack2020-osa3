@@ -10,20 +10,20 @@ app.use(cors())
 app.use(express.json())
 app.use(express.static('build'))
 
-const requestLogger = (request, response, next) => {
+/* const requestLogger = (request, response, next) => {
     console.log('---')
     console.log('Method:', request.method)
     console.log('Path:', request.path)
     console.log('Body:', request.body)
     console.log('---')
     next()
-}
+} */
 
 const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint'})
 }
 
-app.use(requestLogger)
+/* app.use(requestLogger) */
 
 morgan.token('body', function (req, res) {
     return JSON.stringify(req.body)
@@ -72,15 +72,24 @@ app.get('/info', (request, response) => {
     response.send(`<p>Phonebook has info for ${people} people</p>${date}`)
 })
 
-app.get('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    const person = persons.find(person => person.id === id)
+app.post('/api/persons', (request, response) => {
+    const body = request.body
+
+    if (!body.name || !body.number) {
+        return response.status(400).json({ error: 'name or number missing' })
+    } /* else if (persons.find(person => person.name === body.name)) {
+        return response.status(400).json({ error: 'name already exists in the phonebook' })
+    } */
     
-    if (person) {
-        response.json(person)
-    } else {
-        response.status(404).end()
-    }
+    const person = new Person({
+        name: body.name,
+        number: body.number
+    })
+
+    person.save().then(savedPerson => {
+        response.json(savedPerson.toJSON())
+    })
+
 })
 
 app.delete('/api/persons/:id', (request, response) => {
@@ -90,31 +99,16 @@ app.delete('/api/persons/:id', (request, response) => {
     response.status(204).end()
 })
 
-app.post('/api/persons', (request, response) => {
-    const body = request.body
-
-    if (!body.name || !body.number) {
-        return response.status(400).json({
-            error: 'name or number missing'
-        })
-    } else if (persons.find(person => person.name === body.name)) {
-        return response.status(400).json({
-            error: 'name already exists in the phonebook'
-        })
-    }
+/* app.get('/api/persons/:id', (request, response) => {
+    const id = Number(request.params.id)
+    const person = persons.find(person => person.id === id)
     
-    const randomId = Math.floor(Math.random() * Math.floor(1000))
-    
-    const person = {
-        id: randomId,
-        name: body.name,
-        number: body.number
+    if (person) {
+        response.json(person)
+    } else {
+        response.status(404).end()
     }
-
-    persons = persons.concat(person)
-
-    response.json(person)
-})
+}) */
 
 app.use(unknownEndpoint)
 
