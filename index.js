@@ -16,7 +16,7 @@ morgan.token('body', function (req, res) {
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
-let persons = [
+/* let persons = [
     {
         id: 1,
         name: "Arto Hellas", 
@@ -37,24 +37,32 @@ let persons = [
         name: "Mary Poppendieck", 
         number: "39-23-6423122",
     }
-]
+] */
   
-app.get('/', (request, response) => {
-    response.send('<h1>Welcome to Phonebook!</h1>')
-})
-
-/* app.get('/info', (request, response) => {
-    const people = persons.length
-    console.log(people)
+app.get('/info', (request, response) => {
     const date = new Date()
-    response.send(`<p>Phonebook has info for ${people} people</p>${date}`)
-}) */
+    Person.find({}).then(persons => {
+        response.send(`<p>Phonebook has info for ${persons.length} people</p>${date}`)
+    })
+})
 
 app.get('/api/persons', (request, response) => {
     Person.find({}).then(persons => {
         response.json(persons)
     })
 })
+
+app.get('/api/persons/:id', (request, response, next) => {
+    Person.findById(request.params.id)
+        .then(person => {
+            if(person) {
+                response.json(person)
+            } else {
+                response.status(404).end()
+            }
+        })
+        .catch(error => next(error))
+}) 
 
 app.post('/api/persons', (request, response) => {
     const body = request.body
@@ -99,17 +107,6 @@ app.put('/api/persons/:id', (request, response, next) => {
         })
         .catch(error => next(error))
 })
-
-/* app.get('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    const person = persons.find(person => person.id === id)
-    
-    if (person) {
-        response.json(person)
-    } else {
-        response.status(404).end()
-    }
-}) */
 
 const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint'})
