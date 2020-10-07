@@ -9,7 +9,8 @@
     "build:ui": "rm -rf build && cd ../FullStack2020/osa2/puhelinluettelo/ && yarn run build --prod && cp -r build ../../../FullStack2020-osa3/",
     "deploy": "git push heroku master",
     "deploy:full": "yarn run build:ui && git add . && git commit -m uibuild && git push && yarn run deploy",
-    "logs:prod": "heroku logs --tail"
+    "logs:prod": "heroku logs --tail",
+    "lint": "eslint ."
   },
   "author": "Mariia Pyylampi",
   "license": "MIT",
@@ -22,6 +23,7 @@
     "morgan": "^1.10.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.4"
+    "nodemon": "^2.0.4",
+    "eslint": "^7.10.0"
   }
 }
