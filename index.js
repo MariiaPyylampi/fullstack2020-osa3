@@ -4,6 +4,7 @@ const morgan = require('morgan')
 const cors = require('cors')
 require('dotenv').config()
 const Person = require('./models/person')
+const { request, response } = require('express')
 
 app.use(cors())
 app.use(express.json())
@@ -60,9 +61,7 @@ app.post('/api/persons', (request, response) => {
 
     if (!body.name || !body.number) {
         return response.status(400).json({ error: 'name or number missing' })
-    } /* else if (persons.find(person => person.name === body.name)) {
-        return response.status(400).json({ error: 'name already exists in the phonebook' })
-    } */
+    } 
     
     const person = new Person({
         name: body.name,
@@ -75,9 +74,28 @@ app.post('/api/persons', (request, response) => {
 })
 
 app.delete('/api/persons/:id', (request, response, next) => {
-    Person.findByIdAndDelete(request.params.id)
+    Person.findByIdAndRemove(request.params.id)
         .then(result => { 
             response.status(204).end()
+        })
+        .catch(error => next(error))
+})
+
+app.put('/api/persons/:id', (request, response, next) => {
+    const body = request.body
+
+    if (!body.number) {
+        return response.status(400).json({ error: 'number missing' })
+    }
+
+    const person = {
+        name: body.name,
+        number: body.number
+    }
+
+    Person.findByIdAndUpdate(request.params.id, person, { new: true })
+        .then(updatedPerson => {
+            response.json(updatedPerson)
         })
         .catch(error => next(error))
 })
